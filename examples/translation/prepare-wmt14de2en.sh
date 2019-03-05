@@ -7,8 +7,8 @@ git clone https://github.com/moses-smt/mosesdecoder.git
 echo 'Cloning Subword NMT repository (for BPE pre-processing)...'
 git clone https://github.com/rsennrich/subword-nmt.git
 
-echo 'Cloning TMX convertor repository (for Tilde MODEL)'
-git clone https://gist.github.com/9128457.git tmx-convertor
+# echo 'Cloning TMX convertor repository (for Tilde MODEL)'
+# git clone https://gist.github.com/9128457.git tmx-convertor
 
 SCRIPTS=mosesdecoder/scripts
 TOKENIZER=$SCRIPTS/tokenizer/tokenizer.perl
@@ -18,11 +18,25 @@ REM_NON_PRINT_CHAR=$SCRIPTS/tokenizer/remove-non-printing-char.perl
 BPEROOT=subword-nmt
 BPE_TOKENS=40000
 TMX_CONVERTOR=tmx-convertor/TMX2Corpus.py
+DEDUPE=preprocess/build/bin/dedupe
+
+if [ ! -f $DEDUPE ]; then
+    echo 'Cloning and building KPU Preprocess repository'
+    git clone https://github.com/kpu/preprocess
+    cd preprocess
+    mkdir build
+    cd build
+    cmake ..
+    make -j8
+    cd ../..
+fi
 
 URLS=(
     "http://statmt.org/wmt13/training-parallel-europarl-v7.tgz"
     "http://statmt.org/wmt13/training-parallel-commoncrawl.tgz"
+    "http://opus.nlpl.eu/download.php?f=News-Commentary/v11/moses/de-en.txt.zip"
     "http://data.statmt.org/wmt17/translation-task/training-parallel-nc-v12.tgz"
+    "http://data.statmt.org/wmt18/translation-task/training-parallel-nc-v13.tgz"
     "http://data.statmt.org/wmt17/translation-task/dev.tgz"
     "http://statmt.org/wmt14/test-full.tgz"
     "http://data.statmt.org/wmt18/translation-task/preprocessed/de-en/corpus.gz"
@@ -32,7 +46,9 @@ URLS=(
 FILES=(
     "training-parallel-europarl-v7.tgz"
     "training-parallel-commoncrawl.tgz"
+    "training-parallel-nc-v11.tgz"
     "training-parallel-nc-v12.tgz"
+    "training-parallel-nc-v13.tgz"
     "dev.tgz"
     "test-full.tgz"
     "corpus.gz"
@@ -42,7 +58,9 @@ FILES=(
 CORPORA=(
     "training/europarl-v7.de-en"
     "commoncrawl.de-en"
+    "News-Commentary.de-en"
     "training/news-commentary-v12.de-en"
+    "training/news-commentary-v13.de-en"
 )
 
 WMT18=corpus
@@ -115,6 +133,15 @@ for l in $src $tgt; do
         cat $orig/$f.$lang.$l >> $tmp/train.tags.$lang.tok.$l
     done
 done
+
+echo "Deduplicating train data..."
+paste $tmp/train.tags.$lang.tok.$src $tmp/train.tags.$lang.tok.$tgt > $tmp/train.tags.$lang.tok.$lang
+$DEDUPE < $tmp/train.tags.$lang.tok.$lang > $tmp/train.tags.$lang.tok.$lang.deduped
+rm $tmp/train.tags.$lang.tok.$src $tmp/train.tags.$lang.tok.$tgt
+python --left $tmp/train.tags.$lang.tok.$src --right $tmp/train.tags.$lang.tok.$tgt \
+    --filter < $tmp/train.tags.$lang.tok.$lang.deduped
+rm $tmp/train.tags.$lang.tok.$lang $tmp/train.tags.$lang.tok.$lang.deduped
+
 
 echo "pre-processing test data..."
 for l in $src $tgt; do

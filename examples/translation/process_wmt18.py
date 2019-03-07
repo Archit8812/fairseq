@@ -23,9 +23,12 @@ if __name__ == '__main__':
 
             valid_line = True
             if args.filter:
-                ratio = sum(c.isalpha() for c in left) / len(left)
-                words_count = len(re.findall(r'[a-zA-ZäöüßÄÖÜ]+', left))
-                valid_line = ratio >= ALPHA_RATIO and words_count >= MIN_WORDS
+                if len(left) > 0:
+                    ratio = sum(c.isalpha() for c in left) / len(left)
+                    words_count = len(re.findall(r'[a-zA-ZäöüßÄÖÜ]+', left))
+                    valid_line = ratio >= ALPHA_RATIO and words_count >= MIN_WORDS
+                else:
+                    valid_line = False
             if subset != args.ignore_subset and valid_line:
                 fid_l.write(left.strip('\n') + '\n')
                 fid_r.writelines(right.strip('\n') + '\n')

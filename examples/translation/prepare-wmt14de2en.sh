@@ -107,7 +107,8 @@ for ((i=0;i<${#URLS[@]};++i)); do
         elif [ ${file: -4} == ".tar" ]; then
             tar xvf $file
         elif [ ${file: -3} == ".gz" ]; then
-            gunzip $file
+	    dest=${file%.*}
+            gunzip < $file > $dest
         elif [ ${file: -4} == ".zip" ]; then
             unzip -o $file
         fi
@@ -138,7 +139,7 @@ echo "Deduplicating train data..."
 paste $tmp/train.tags.$lang.tok.$src $tmp/train.tags.$lang.tok.$tgt > $tmp/train.tags.$lang.tok.$lang
 $DEDUPE < $tmp/train.tags.$lang.tok.$lang > $tmp/train.tags.$lang.tok.$lang.deduped
 rm $tmp/train.tags.$lang.tok.$src $tmp/train.tags.$lang.tok.$tgt
-python --left $tmp/train.tags.$lang.tok.$src --right $tmp/train.tags.$lang.tok.$tgt \
+python process_wmt18.py --left $tmp/train.tags.$lang.tok.$src --right $tmp/train.tags.$lang.tok.$tgt \
     --filter < $tmp/train.tags.$lang.tok.$lang.deduped
 rm $tmp/train.tags.$lang.tok.$lang $tmp/train.tags.$lang.tok.$lang.deduped
 

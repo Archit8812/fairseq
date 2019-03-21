@@ -8,7 +8,7 @@ BIN_OUT=data-bin/wmt18full
 ROOT_DIR=examples/translation
 
 TEXTDIR=$ROOT_DIR/translation/wmt17_de_en
-TMP=text/tmp
+TMP=$TEXTDIR/tmp
 
 SCRIPTS=$ROOT_DIR/mosesdecoder/scripts
 TOKENIZER=$SCRIPTS/tokenizer/tokenizer.perl

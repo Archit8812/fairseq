@@ -7,7 +7,7 @@ BIN_OUT=data-bin/wmt18full
 
 ROOT_DIR=examples/translation
 
-TEXTDIR=$ROOT_DIR/translation/wmt17_de_en
+TEXTDIR=$ROOT_DIR/wmt17_de_en
 TMP=$TEXTDIR/tmp
 
 SCRIPTS=$ROOT_DIR/mosesdecoder/scripts
